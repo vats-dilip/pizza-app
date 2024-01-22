@@ -1,0 +1,22 @@
+# flow: run the login flow and then navigate to the Debug screen and click on the Logout Button.
+
+appId: com.pizzaapp
+env:
+  TITLE: "Log Out"
+
+---
+- runFlow: Login.yaml
+- tapOn: "Debug"
+- scrollUntilVisible:
+    element:
+      text: ${TITLE}
+    direction: DOWN
+    timeout: 50000
+    speed: 80
+    visibilityPercentage: 0
+- assertVisible: "Log Out"
+- tapOn:
+    text: ${TITLE}
+- assertVisible: "Sign In"
+
+

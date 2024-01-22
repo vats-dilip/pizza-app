@@ -1,0 +1,69 @@
+# flow: run the login flow and then navigate to the demo podcast list screen, favorite a podcast, and then switch the list to only be favorites.
+
+appId: com.pizzaapp
+env:
+  TITLE: "Send us a message"
+
+---
+- runFlow: Login.yaml
+- tapOn: "Community"
+- scrollUntilVisible:
+    element:
+      text: ${TITLE}
+    direction: DOWN
+    timeout: 50000
+    speed: 80
+    visibilityPercentage: 100
+- assertVisible: ${TITLE}
+- tapOn: ${TITLE}
+- assertVisible: ${TITLE}
+- scrollUntilVisible:
+    element:
+      id: "name"
+    direction: DOWN
+    speed: 20
+- tapOn:
+    id: "name"
+- inputText: "Monsoon Maurya"
+- scrollUntilVisible:
+    element:
+      id: "Email-5"
+    direction: DOWN
+    speed: 20
+- tapOn:
+    id: "Email-5"
+- inputText: "abc@gmail.com"
+- scrollUntilVisible:
+    element:
+      id: "Company"
+    direction: DOWN
+    speed: 20
+- tapOn:
+    id: "Company"
+- inputText: "Expo Go"
+- scrollUntilVisible:
+    element:
+      id: "Referral"
+    direction: DOWN
+    speed: 20
+- tapOn:
+    id: "Referral"
+- inputText: "Podcast"
+- scrollUntilVisible:
+    element:
+      id: "Message-2"
+    direction: DOWN
+    speed: 20
+- tapOn:
+    id: "Message-2"
+- inputText: "This is an assesment for UI Automation Testing"
+- tapOn: "Send Message"
+- scrollUntilVisible:
+    element:
+      text: "Message sent!"
+    direction: UP
+    timeout: 50000
+    speed: 40
+    visibilityPercentage: 100
+- back
+

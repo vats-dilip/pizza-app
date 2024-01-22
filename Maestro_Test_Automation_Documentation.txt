@@ -1,0 +1,366 @@
+Maestro Test Automation Documentation
+
+
+Step 1: Environment Setup
+
+1.1Install Android Studio
+
+-> Download Android Studio App from browser
+-> After installation, open Android Studio
+-> Click on ‘More actions’
+-> Launch ‘Pixel_3a’
+-> Android mobile will pop up
+-> Add ‘Android/Sdk’ and ‘Android/Sdk/platform-tools’ path to your environment variable
+
+
+
+1.2Connect ADB devices
+
+‘adb’ devices is a command used in Android development and debugging to check the list of Android devices connected to your computer via the Android Debug Bridge (ADB). ADB is a versatile command-line tool that allows developers to interact with Android devices for various purposes, such as installing and debugging applications, transferring files, and accessing the device shell.
+
+Commands: 
+
+*Open Windows Powershell*
+
+- Check adb version
+  adb --version
+
+
+- Install WSL
+ wsl --install
+
+- Install Ubuntu
+ wsl --install -d Ubuntu
+ wsl --update
+
+*Open Ubuntu*
+
+- Sudo Command
+  sudo apt-get update
+  sudo apt update
+
+-Download latest command line tools for linux from browser
+
+
+- Install Java
+   sudo apt install openjdk-11-jdk
+
+- Follow the process given in the doc for installing and upgrading Maestro CLI
+https://maestro.mobile.dev/getting-started/installing-maestro/windows
+
+- Ensure Maestro CLI is installed successfully by running:
+ maestro --version
+ 
+-Start the adb server in window host in Windows Powershell
+  adb kill server
+  adb -a -P 5037 nodaemon server
+
+
+
+ -adb connection
+ export ADB_SERVER_SOCKET=tcp:<WINDOWS_IPv4_ADDR>:5037
+
+-Check connected adb devices
+ adb devices
+
+
+
+1.3Setup of React Native development environment
+
+->  Select any preferable IDE
+-> Download the required dependencies
+-> Check app.json and package.json file 
+
+*app.json file*
+{
+  "name": "PizzaApp",
+  "displayName": "PizzaApp",
+  "expo": {
+    "name": "PizzaApp",
+    "slug": "PizzaApp",
+    "scheme": "pizzaapp",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/app-icon-all.png",
+    "splash": {
+      "image": "./assets/images/splash-logo-all.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#191015"
+    },
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "jsEngine": "hermes",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "android": {
+      "icon": "./assets/images/app-icon-android-legacy.png",
+      "package": "com.pizzaapp",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/app-icon-android-adaptive-foreground.png",
+        "backgroundImage": "./assets/images/app-icon-android-adaptive-background.png"
+      },
+      "splash": {
+        "image": "./assets/images/splash-logo-android-universal.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#191015"
+      }
+    },
+    "ios": {
+      "icon": "./assets/images/app-icon-ios.png",
+      "supportsTablet": true,
+      "bundleIdentifier": "com.pizzaapp",
+      "splash": {
+        "image": "./assets/images/splash-logo-ios-mobile.png",
+        "tabletImage": "./assets/images/splash-logo-ios-tablet.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#191015"
+      }
+    },
+    "web": {
+      "favicon": "./assets/images/app-icon-web-favicon.png",
+      "splash": {
+        "image": "./assets/images/splash-logo-web.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#191015"
+      },
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-localization",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "newArchEnabled": false
+          },
+          "android": {
+            "newArchEnabled": false
+          }
+        }
+      ]
+    ],
+    "experiments": {
+      "tsconfigPaths": true
+    }
+  },
+  "ignite": {
+    "version": "9.4.0"
+  }
+}
+
+
+Step 2: Maestro Test cases
+
+1.1Scenarios
+
+-> Login into the App
+     
+#flow: Login
+#intent:
+# Open up our app and use the default credentials to login
+# and navigate to the demo screen
+
+appId: com.pizzaapp # the app id of the app we want to test
+# You can find the appId of an Ignite app in the `app.json` file
+# as the "package" under the "android" section and "bundleIdentifier" under the "ios" section
+---
+- clearState # clears the state of our app (navigation and authentication)
+- launchApp # launches the app
+- assertVisible: "PizzaApp"
+- tapOn:
+    text: "PizzaApp"
+- assertVisible: "Sign In"
+- tapOn:
+    text: "Tap to sign in!"
+- tapOn:
+    text: "Continue"
+- assertVisible: "Your app, almost ready for launch!"
+- tapOn:
+    text: "Let's go!"
+- assertVisible: "Components to jump start your project!"
+
+-> Select Favourite Podcast
+
+# flow: run the login flow and then navigate to the demo podcast list screen, favorite a podcast, and then switch the list to only be favorites.
+
+appId: com.pizzaapp
+env:
+  TITLE: "RNR 277 - Expo Launch Party"
+  FAVORITES_TEXT: "Only Show Favorites"
+---
+- tapOn: "Podcast"
+- scrollUntilVisible:
+    element:
+      text: ${FAVORITES_TEXT}
+    direction: UP
+    timeout: 50000
+    speed: 80
+    visibilityPercentage: 0
+- assertVisible: "React Native Radio episodes"
+- tapOn:
+    text: ${FAVORITES_TEXT}
+- assertVisible: "This looks a bit empty"
+- tapOn:
+    text: ${FAVORITES_TEXT}
+    # https://maestro.mobile.dev/troubleshooting/known-issues#android-accidental-double-tap
+    retryTapIfNoChange: false
+- scrollUntilVisible:
+    element:
+      text: ${TITLE}
+    direction: DOWN
+    timeout: 50000
+    speed: 50
+    visibilityPercentage: 100
+- longPressOn: ${TITLE}
+- scrollUntilVisible:
+    element:
+      text: ${FAVORITES_TEXT}
+    direction: UP
+    timeout: 50000
+    speed: 40
+    visibilityPercentage: 100
+- tapOn:
+    text: ${FAVORITES_TEXT}
+- assertVisible: ${TITLE}
+
+-> Go ToButton
+# flow: run the login flow and then go to menu bar click on button 
+
+appId: com.pizzaapp
+env:
+  TITLE: "Button"
+---
+- runFlow: Login.yaml
+- tapOn:
+    point: "7%,6%"
+- assertVisible: "Button"
+- tapOn: ${TITLE}
+- assertVisible: "Presets"
+
+-> Logout From the Application
+
+# flow: run the login flow and then navigate to the Debug screen and click on the Logout Button.
+
+appId: com.pizzaapp
+env:
+  TITLE: "Log Out"
+---
+- runFlow: Login.yaml
+- tapOn: "Debug"
+- scrollUntilVisible:
+    element:
+      text: ${TITLE}
+    direction: DOWN
+    timeout: 50000
+    speed: 80
+    visibilityPercentage: 0
+- assertVisible: "Log Out"
+- tapOn:
+    text: ${TITLE}
+- assertVisible: "Sign In"
+
+
+-> Send Message
+
+# flow: run the login flow and then navigate to the demo podcast list screen, favorite a podcast, and then switch the list to only be favorites.
+
+appId: com.pizzaapp
+env:
+  TITLE: "Send us a message"
+---
+- runFlow: Login.yaml
+- tapOn: "Community"
+- scrollUntilVisible:
+    element:
+      text: ${TITLE}
+    direction: DOWN
+    timeout: 50000
+    speed: 80
+    visibilityPercentage: 100
+- assertVisible: ${TITLE}
+- tapOn: ${TITLE}
+- assertVisible: ${TITLE}
+- scrollUntilVisible:
+    element:
+      id: "name"
+    direction: DOWN
+    speed: 20
+- tapOn:
+    id: "name"
+- inputText: "Monsoon Maurya"
+- scrollUntilVisible:
+    element:
+      id: "Email-5"
+    direction: DOWN
+    speed: 20
+- tapOn:
+    id: "Email-5"
+- inputText: "abc@gmail.com"
+- scrollUntilVisible:
+    element:
+      id: "Company"
+    direction: DOWN
+    speed: 20
+- tapOn:
+    id: "Company"
+- inputText: "Expo Go"
+- scrollUntilVisible:
+    element:
+      id: "Referral"
+    direction: DOWN
+    speed: 20
+- tapOn:
+    id: "Referral"
+- inputText: "Podcast"
+- scrollUntilVisible:
+    element:
+      id: "Message-2"
+    direction: DOWN
+    speed: 20
+- tapOn:
+    id: "Message-2"
+- inputText: "This is an assesment for UI Automation Testing"
+- tapOn: "Send Message"
+- scrollUntilVisible:
+    element:
+      text: "Message sent!"
+    direction: UP
+    timeout: 50000
+    speed: 40
+    visibilityPercentage: 100
+- back
+
+1.2Command To Run Test Cases
+ cp /mnt/path/to/file/<maestro_file> .
+ maestro --host <IP_Address> test <maestro_file_>
+
+1.3Command to Run Maestro Studio
+
+ maestro --host <WINDOWS_IPV4_ADDR> studio
+ 
+
+
+
+
+
+
+
+1.4Command to Run Project on VsCode IDE
+
+    yarn android
+ 
+Step 3: Maestro Test cases Report
+
+-> Favourite Podcast Report
+
+
+ 
+ 
+ -> Send Message Report
+ 
+ 
+ 
+ 
+ 

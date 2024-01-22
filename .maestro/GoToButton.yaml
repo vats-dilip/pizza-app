@@ -1,0 +1,14 @@
+# flow: run the login flow and then go to menu bar click on button 
+
+appId: com.pizzaapp
+env:
+  TITLE: "Button"
+
+---
+- runFlow: Login.yaml
+- tapOn:
+    point: "7%,6%"
+- assertVisible: "Button"
+- tapOn: ${TITLE}
+- assertVisible: "Presets"
+
